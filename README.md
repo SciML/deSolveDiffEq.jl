@@ -111,6 +111,15 @@ prob = ODEProblem(lorenz,u0,tspan)
 @btime sol = solve(prob,deSolveDiffEq.lsoda()) # 812.972 ms (2152395 allocations: 67.85 MiB)
 ```
 
+#### Implementation Note
+
+Note that the implementation requires that the function returns a list, so an
+R list is generated on the output of each user function call. This means this
+is more comparable to the timings of the standard deSolve usage, and not the
+C/Fortran function version. We are working to see if that interface can be
+directly accessible by Julia functions to check the "expert's version" call
+overhead
+
 ## Benchmarks
 
 The following benchmarks demonstrate a **1000x performance advantage for the
@@ -162,11 +171,14 @@ names = [
   "SciPy: LSODA"
   "deSolve: lsoda"
   "deSolve: ode45"
+  "Sundials: Adams"
   ]
 
 abstols = 1.0 ./ 10.0 .^ (6:13)
 reltols = 1.0 ./ 10.0 .^ (3:10)
-wp = WorkPrecisionSet(prob,abstols,reltols,setups;appxsol=test_sol,dense=false,
+wp = WorkPrecisionSet(prob,abstols,reltols,setups;
+                      names = names,
+                      appxsol=test_sol,dense=false,
                       save_everystep=false,numruns=100,maxiters=10000000,
                       timeseries_errors=false,verbose=false)
 plot(wp,title="Non-stiff 1: Lotka-Volterra")
@@ -210,11 +222,14 @@ names = [
   "SciPy: LSODA"
   "deSolve: lsoda"
   "deSolve: ode45"
+  "Sundials: Adams"
   ]
 
 abstols = 1.0 ./ 10.0 .^ (6:13)
 reltols = 1.0 ./ 10.0 .^ (3:10)
-wp = WorkPrecisionSet(prob,abstols,reltols,setups;appxsol=test_sol,dense=false,
+wp = WorkPrecisionSet(prob,abstols,reltols,setups;
+                      names = names,
+                      appxsol=test_sol,dense=false,
                       save_everystep=false,numruns=100,maxiters=10000000,
                       timeseries_errors=false,verbose=false)
 plot(wp,title="Non-stiff 2: Rigid-Body")
@@ -239,18 +254,33 @@ abstols = 1.0 ./ 10.0 .^ (5:8)
 reltols = 1.0 ./ 10.0 .^ (1:4);
 setups = [Dict(:alg=>Rosenbrock23())
           Dict(:alg=>TRBDF2())
+          Dict(:alg=>RadauIIA5())
           Dict(:alg=>rodas())
           Dict(:alg=>radau())
-          Dict(:alg=>RadauIIA5())
-          Dict(:alg=>SciPyDiffEq.LSODA())
-          Dict(:alg=>SciPyDiffEq.BDF())
           Dict(:alg=>MATLABDiffEq.ode23s())
           Dict(:alg=>MATLABDiffEq.ode15s())
+          Dict(:alg=>SciPyDiffEq.LSODA())
+          Dict(:alg=>SciPyDiffEq.BDF())
           Dict(:alg=>deSolveDiffEq.lsoda())
           ]
 
+names = [
+  "Julia: Rosenbrock23"
+  "Julia: TRBDF2"
+  "Julia: radau"
+  "Hairer: rodas"
+  "Hairer: radau"
+  "MATLAB: ode23s"
+  "MATLAB: ode15s"
+  "SciPy: LSODA"
+  "SciPy: BDF"
+  "deSolve: lsoda"
+  ]
+
 wp = WorkPrecisionSet(prob,abstols,reltols,setups;
-                      save_everystep=false,appxsol=test_sol,maxiters=Int(1e5),numruns=100)
+                      names = names,
+                      save_everystep=false,appxsol=test_sol,
+                      maxiters=Int(1e5),numruns=100)
 plot(wp,title="Stiff 1: ROBER")
 savefig("benchmark3.png")
 ```
@@ -284,18 +314,33 @@ abstols = 1.0 ./ 10.0 .^ (5:8)
 reltols = 1.0 ./ 10.0 .^ (1:4);
 setups = [Dict(:alg=>Rosenbrock23())
           Dict(:alg=>TRBDF2())
+          Dict(:alg=>RadauIIA5())
           Dict(:alg=>rodas())
           Dict(:alg=>radau())
-          Dict(:alg=>RadauIIA5())
-          Dict(:alg=>SciPyDiffEq.LSODA())
-          Dict(:alg=>SciPyDiffEq.BDF())
           Dict(:alg=>MATLABDiffEq.ode23s())
           Dict(:alg=>MATLABDiffEq.ode15s())
+          Dict(:alg=>SciPyDiffEq.LSODA())
+          Dict(:alg=>SciPyDiffEq.BDF())
           Dict(:alg=>deSolveDiffEq.lsoda())
           ]
 
+names = [
+  "Julia: Rosenbrock23"
+  "Julia: TRBDF2"
+  "Julia: radau"
+  "Hairer: rodas"
+  "Hairer: radau"
+  "MATLAB: ode23s"
+  "MATLAB: ode15s"
+  "SciPy: LSODA"
+  "SciPy: BDF"
+  "deSolve: lsoda"
+  ]
+
 wp = WorkPrecisionSet(prob,abstols,reltols,setups;
-                      save_everystep=false,appxsol=test_sol,maxiters=Int(1e5),numruns=100)
+                      names = names,
+                      save_everystep=false,appxsol=test_sol,
+                      maxiters=Int(1e5),numruns=100)
 plot(wp,title="Stiff 2: Hires")
 savefig("benchmark4.png")
 ```
