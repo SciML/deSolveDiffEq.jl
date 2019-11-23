@@ -3,6 +3,11 @@ uuid = "0518478a-701b-4815-806c-24ad5cb92f09"
 authors = ["Chris Rackauckas <accounts@chrisrackauckas.com>"]
 version = "0.1.0"
 
+[deps]
+DiffEqBase = "2b5f629d-d688-5b77-993f-72d75c75574e"
+RCall = "6f49c342-dc21-5d91-9882-a32aef131414"
+Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
+
 [compat]
 julia = "1"
 
