@@ -20,6 +20,9 @@ To install deSolveDiffEq.jl, use the following:
 Pkg.clone("https://github.com/JuliaDiffEq/deSolveDiffEq.jl")
 ```
 
+Note that this requires that deSolve is already installed from R and that 
+[RCall.jl](https://github.com/JuliaInterop/RCall.jl) is able to appropriately build.
+
 ## Using deSolveDiffEq.jl
 
 deSolveDiffEq.jl is simply a solver on the DiffEq common interface, so for details see the [DifferentialEquations.jl documentation](https://juliadiffeq.github.io/DiffEqDocs.jl/dev/).
