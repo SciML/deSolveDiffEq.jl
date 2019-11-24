@@ -82,6 +82,7 @@ function DiffEqBase.__solve(
     end
 
     DiffEqBase.build_solution(prob,alg,ts,timeseries,
+                              dense = false,
                               timeseries_errors = timeseries_errors)
 end
 

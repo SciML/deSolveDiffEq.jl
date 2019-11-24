@@ -134,13 +134,13 @@ If one directly writes C/Fortran files and compiles that using the
 the deSolve LSODA matches the performance of LSODA.jl and other pure C/Fortran
 calls. Thus this only applied to the standard deSolve usage.
 
+#### Non-Stiff Problem 1: Lotka-Volterra
+
 ```julia
 using ParameterizedFunctions, MATLABDiffEq, OrdinaryDiffEq, ODEInterface,
       ODEInterfaceDiffEq, Plots, Sundials, SciPyDiffEq, deSolveDiffEq
 using DiffEqDevTools
 using LinearAlgebra
-
-## Non-Stiff Problem 1: Lotka-Volterra
 
 f = @ode_def_bare LotkaVolterra begin
   dx = a*x - b*x*y
@@ -193,8 +193,10 @@ savefig("benchmark1.png")
 
 ![benchmark1](https://user-images.githubusercontent.com/1814174/69487806-157cb400-0e2e-11ea-876f-c519aed013c0.png)
 
+#### Non-Stiff Problem 2: Rigid Body
+
 ```julia
-## Non-Stiff Problem 2: Rigid Body
+
 
 f = @ode_def_bare RigidBodyBench begin
   dy1  = -2*y2*y3
@@ -245,20 +247,23 @@ savefig("benchmark2.png")
 
 ![benchmark2](https://user-images.githubusercontent.com/1814174/69487808-17467780-0e2e-11ea-9db2-324d4e319d07.png)
 
+#### Stiff Problem 1: ROBER Shorter and Simpler for SciPy
+
 ```julia
-## Stiff Problem 1: ROBER
+
 
 rober = @ode_def begin
   dy₁ = -k₁*y₁+k₃*y₂*y₃
   dy₂ =  k₁*y₁-k₂*y₂^2-k₃*y₂*y₃
   dy₃ =  k₂*y₂^2
 end k₁ k₂ k₃
-prob = ODEProblem(rober,[1.0,0.0,0.0],(0.0,1e5),[0.04,3e7,1e4])
+prob = ODEProblem(rober,[1.0,0.0,0.0],(0.0,1e3),[0.04,3e7,1e4])
 sol = solve(prob,CVODE_BDF(),abstol=1/10^14,reltol=1/10^14)
 test_sol = TestSolution(sol)
 
-abstols = 1.0 ./ 10.0 .^ (5:8)
-reltols = 1.0 ./ 10.0 .^ (1:4);
+abstols = 1.0 ./ 10.0 .^ (7:8)
+reltols = 1.0 ./ 10.0 .^ (3:4);
+
 setups = [Dict(:alg=>Rosenbrock23())
           Dict(:alg=>TRBDF2())
           Dict(:alg=>RadauIIA5())
@@ -286,17 +291,69 @@ names = [
 
 wp = WorkPrecisionSet(prob,abstols,reltols,setups;
                       names = names,print_names = true,
+                      dense=false,verbose = false,
                       save_everystep=false,appxsol=test_sol,
-                      maxiters=Int(1e5),numruns=100)
-plot(wp,title="Stiff 1: ROBER")
-savefig("benchmark3.png")
+                      maxiters=Int(1e5))
+plot(wp,title="Stiff 1: ROBER Short")
+savefig("benchmark31.png")
 ```
 
-![benchmark3]()
+![benchmark31](https://user-images.githubusercontent.com/1814174/69501071-4b25a980-0ecf-11ea-99d1-b7274491498e.png)
+
+#### Rober Standard length
+
+**SciPy Omitted due to failures at higher tolerances and because it's too slow to finish in a day!**
+See note below.
 
 ```julia
-## Stiff Problem 2: HIRES
 
+
+prob = ODEProblem(rober,[1.0,0.0,0.0],(0.0,1e5),[0.04,3e7,1e4])
+sol = solve(prob,CVODE_BDF(),abstol=1/10^14,reltol=1/10^14)
+test_sol = TestSolution(sol)
+
+abstols = 1.0 ./ 10.0 .^ (5:8)
+reltols = 1.0 ./ 10.0 .^ (1:4);
+
+setups = [Dict(:alg=>Rosenbrock23())
+          Dict(:alg=>TRBDF2())
+          Dict(:alg=>RadauIIA5())
+          Dict(:alg=>rodas())
+          Dict(:alg=>radau())
+          Dict(:alg=>MATLABDiffEq.ode23s())
+          Dict(:alg=>MATLABDiffEq.ode15s())
+          #Dict(:alg=>SciPyDiffEq.LSODA())
+          #Dict(:alg=>SciPyDiffEq.BDF())
+          Dict(:alg=>deSolveDiffEq.lsoda())
+          ]
+
+names = [
+  "Julia: Rosenbrock23"
+  "Julia: TRBDF2"
+  "Julia: radau"
+  "Hairer: rodas"
+  "Hairer: radau"
+  "MATLAB: ode23s"
+  "MATLAB: ode15s"
+  #"SciPy: LSODA"
+  #"SciPy: BDF"
+  "deSolve: lsoda"
+  ]
+
+wp = WorkPrecisionSet(prob,abstols,reltols,setups;
+                      names = names,print_names = true,
+                      dense=false,verbose = false,
+                      save_everystep=false,appxsol=test_sol,
+                      maxiters=Int(1e5))
+plot(wp,title="Stiff 1: ROBER Standard Length")
+savefig("benchmark32.png")
+```
+
+![benchmark32](https://user-images.githubusercontent.com/1814174/69501072-4b25a980-0ecf-11ea-82dd-47aa566ecbc2.png)
+
+#### Stiff Problem 2: HIRES
+
+```julia
 f = @ode_def Hires begin
   dy1 = -1.71*y1 + 0.43*y2 + 8.32*y3 + 0.0007
   dy2 = 1.71*y1 - 8.75*y2
@@ -352,4 +409,4 @@ plot(wp,title="Stiff 2: Hires")
 savefig("benchmark4.png")
 ```
 
-![benchmark4]()
+![benchmark4](https://user-images.githubusercontent.com/1814174/69501114-bec7b680-0ecf-11ea-9095-7b7f2e98d514.png)
