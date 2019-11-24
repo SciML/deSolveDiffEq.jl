@@ -27,8 +27,8 @@ before_install:
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then wget "https://cran.rstudio.com/bin/macosx/$(wget -qO- https://cran.rstudio.com/bin/macosx/ | sed -n 's/.*href="\(R-[^"]*.pkg\)".*/\1/p' | head -n 1)"; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then sudo installer -pkg R-*.pkg -target /; fi
 
-    # Install deSolve.
-    - sudo Rscript -e 'install.packages("deSolve", repos="https://cran.r-project.org")'
+  # Install deSolve.
+  - sudo Rscript -e 'install.packages("deSolve", repos="https://cran.r-project.org")'
 
 # uncomment the following lines to override the default test script
 #script:
