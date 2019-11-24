@@ -8,9 +8,10 @@ ordinary differential equation solvers. It uses the
 [RCall.jl](https://github.com/JuliaInterop/RCall.jl) interop in order to
 send the differential equation over to R and solve it.
 
-Note that this package isn't for production use and is mostly just for benchmarking.
-For well-developed differential equation package, see
-[DifferentialEquations.jl](https://github.com/JuliaDiffEq/DifferentialEquations.jl).
+Note that this package isn't for production use and is mostly just for benchmarking
+and helping new users migrate models over to Julia.
+For more efficient solvers, see the
+[DifferentialEquations.jl documentation](https://github.com/JuliaDiffEq/DifferentialEquations.jl).
 
 ## Installation
 
@@ -20,7 +21,7 @@ To install deSolveDiffEq.jl, use the following:
 Pkg.clone("https://github.com/JuliaDiffEq/deSolveDiffEq.jl")
 ```
 
-Note that this requires that deSolve is already installed from R and that 
+Note that this requires that deSolve is already installed from R and that
 [RCall.jl](https://github.com/JuliaInterop/RCall.jl) is able to appropriately build.
 
 ## Using deSolveDiffEq.jl
