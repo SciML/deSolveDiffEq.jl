@@ -124,9 +124,15 @@ overhead
 
 The following benchmarks demonstrate a **1000x performance advantage for the
 pure-Julia methods over the deSolve ODE solvers** across
-a range of stiff and non-stiff ODEs. These were ran with Julia 1.2, MATLAB
+a range of stiff and non-stiff ODEs\*. These were ran with Julia 1.2, MATLAB
 2019B, deSolve 1.2.5, and SciPy 1.3.1 after verifying negligible overhead on
 interop.
+
+\* There is a caveat: this is comparing the "R form" code vs the pure Julia code.
+If one directly writes C/Fortran files and compiles that using the
+[compiled code interface](https://tpetzoldt.github.io/deSolve-compiled/deSolve-compiled.html),
+the deSolve LSODA matches the performance of LSODA.jl and other pure C/Fortran
+calls. Thus this only applied to the standard deSolve usage.
 
 ```julia
 using ParameterizedFunctions, MATLABDiffEq, OrdinaryDiffEq, ODEInterface,
@@ -185,7 +191,7 @@ plot(wp,title="Non-stiff 1: Lotka-Volterra")
 savefig("benchmark1.png")
 ```
 
-![benchmark1]()
+![benchmark1](https://user-images.githubusercontent.com/1814174/69487806-157cb400-0e2e-11ea-876f-c519aed013c0.png)
 
 ```julia
 ## Non-Stiff Problem 2: Rigid Body
@@ -237,7 +243,7 @@ plot(wp,title="Non-stiff 2: Rigid-Body")
 savefig("benchmark2.png")
 ```
 
-![benchmark2]()
+![benchmark2](https://user-images.githubusercontent.com/1814174/69487808-17467780-0e2e-11ea-9db2-324d4e319d07.png)
 
 ```julia
 ## Stiff Problem 1: ROBER
@@ -279,7 +285,7 @@ names = [
   ]
 
 wp = WorkPrecisionSet(prob,abstols,reltols,setups;
-                      names = names,
+                      names = names,print_names = true,
                       save_everystep=false,appxsol=test_sol,
                       maxiters=Int(1e5),numruns=100)
 plot(wp,title="Stiff 1: ROBER")
@@ -339,7 +345,7 @@ names = [
   ]
 
 wp = WorkPrecisionSet(prob,abstols,reltols,setups;
-                      names = names,
+                      names = names,print_names = true,
                       save_everystep=false,appxsol=test_sol,
                       maxiters=Int(1e5),numruns=100)
 plot(wp,title="Stiff 2: Hires")
