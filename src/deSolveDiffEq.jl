@@ -72,7 +72,7 @@ function DiffEqBase.__solve(
 
     ts = @view out[:,1]
 
-    if typeof(u0) <: AbstractArray
+    if u0 isa AbstractArray
         timeseries = Vector{typeof(u0)}(undef,length(ts))
         for i=1:length(ts)
             timeseries[i] = @view out[i,2:end]
