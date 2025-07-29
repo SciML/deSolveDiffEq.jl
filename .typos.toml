@@ -1,6 +1,6 @@
 [default.extend-words]
 # Julia-specific functions
-indexin = "indexin"
+indexin = "indexin"  
 findfirst = "findfirst"
 findlast = "findlast"
 eachindex = "eachindex"
@@ -71,3 +71,6 @@ MTK = "MTK"
 ODE = "ODE"
 PDE = "PDE"
 SDE = "SDE"
+
+# deSolveDiffEq specific terms
+parms = "parms"  # R ode() function parameter name
