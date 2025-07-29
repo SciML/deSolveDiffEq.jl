@@ -9,29 +9,29 @@ function __init__()
     solver[] = rimport("deSolve")
 end
 
-abstract type deSolveAlgoritm <: DiffEqBase.AbstractODEAlgorithm end
+abstract type deSolveAlgorithm <: DiffEqBase.AbstractODEAlgorithm end
 
-struct lsoda <: deSolveAlgoritm end
-struct lsode <: deSolveAlgoritm end
-struct lsodes <: deSolveAlgoritm end
-struct lsodar <: deSolveAlgoritm end
-struct vode <: deSolveAlgoritm end
-struct daspk <: deSolveAlgoritm end
-struct euler <: deSolveAlgoritm end
-struct rk4 <: deSolveAlgoritm end
-struct ode23 <: deSolveAlgoritm end
-struct ode45 <: deSolveAlgoritm end
-struct radau <: deSolveAlgoritm end
-struct bdf <: deSolveAlgoritm end
-struct bdf_d <: deSolveAlgoritm end
-struct adams <: deSolveAlgoritm end
-struct impAdams <: deSolveAlgoritm end
-struct impAdams_d <: deSolveAlgoritm end
-struct iteration <: deSolveAlgoritm end
+struct lsoda <: deSolveAlgorithm end
+struct lsode <: deSolveAlgorithm end
+struct lsodes <: deSolveAlgorithm end
+struct lsodar <: deSolveAlgorithm end
+struct vode <: deSolveAlgorithm end
+struct daspk <: deSolveAlgorithm end
+struct euler <: deSolveAlgorithm end
+struct rk4 <: deSolveAlgorithm end
+struct ode23 <: deSolveAlgorithm end
+struct ode45 <: deSolveAlgorithm end
+struct radau <: deSolveAlgorithm end
+struct bdf <: deSolveAlgorithm end
+struct bdf_d <: deSolveAlgorithm end
+struct adams <: deSolveAlgorithm end
+struct impAdams <: deSolveAlgorithm end
+struct impAdams_d <: deSolveAlgorithm end
+struct iteration <: deSolveAlgorithm end
 
 function DiffEqBase.__solve(
     prob::DiffEqBase.AbstractODEProblem,
-    alg::deSolveAlgoritm,timeseries=[],ts=[],ks=[];
+    alg::deSolveAlgorithm,timeseries=[],ts=[],ks=[];
     saveat=eltype(prob.tspan)[],timeseries_errors=true,
     reltol = 1e-3, abstol = 1e-6,
     maxiters = 100000,
