@@ -1,6 +1,6 @@
 module deSolveDiffEq
 
-using Reexport, RCall
+using Reexport, RCall, PrecompileTools
 @reexport using DiffEqBase
 
 solver = Ref{Module}()
@@ -83,6 +83,24 @@ function DiffEqBase.__solve(
     DiffEqBase.build_solution(prob, alg, ts, timeseries,
         dense = false,
         timeseries_errors = timeseries_errors)
+end
+
+@setup_workload begin
+    # Precompile algorithm struct instantiation and type hierarchy checks
+    # These are pure Julia operations that don't require R
+    @compile_workload begin
+        # Instantiate all algorithm types - this precompiles their constructors
+        # and the subtype relationships
+        algs = (lsoda(), lsode(), lsodes(), lsodar(), vode(), daspk(),
+                euler(), rk4(), ode23(), ode45(), radau(), bdf(), bdf_d(),
+                adams(), impAdams(), impAdams_d(), iteration())
+
+        # Precompile type checks that DiffEqBase.solve will use for dispatch
+        for alg in algs
+            alg isa deSolveAlgorithm
+            alg isa DiffEqBase.AbstractODEAlgorithm
+        end
+    end
 end
 
 end # module
