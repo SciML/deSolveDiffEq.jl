@@ -3,7 +3,12 @@ module deSolveDiffEq
 using Reexport, RCall, PrecompileTools
 @reexport using DiffEqBase
 
-solver = Ref{Module}()
+export deSolveAlgorithm
+export lsoda, lsode, lsodes, lsodar, vode, daspk
+export euler, rk4, ode23, ode45, radau, bdf, bdf_d
+export adams, impAdams, impAdams_d, iteration
+
+const solver = Ref{Module}()
 
 function __init__()
     solver[] = rimport("deSolve")
@@ -53,15 +58,14 @@ function DiffEqBase.__solve(
         end
     end
 
-    _saveat = isempty(saveat) ? nothing : saveat
-    if _saveat isa Array
-        __saveat = _saveat
-    elseif _saveat isa Number
-        __saveat = Array(tspan[1]:_saveat:tspan[2])
-    elseif _saveat isa Nothing
-        __saveat = [tspan[1], tspan[2]]
+    __saveat = if isempty(saveat)
+        [tspan[1], tspan[2]]
+    elseif saveat isa Number
+        collect(tspan[1]:saveat:tspan[2])
+    elseif saveat isa AbstractVector
+        collect(saveat)
     else
-        __saveat = Array(_saveat)
+        collect(saveat)
     end
 
     out = rcopy(solver[].ode(times = __saveat, y = u0, func = f,
@@ -77,7 +81,7 @@ function DiffEqBase.__solve(
             timeseries[i] = @view out[i, 2:end]
         end
     else
-        timeseries = out[i, end]
+        timeseries = @view out[:, 2]
     end
 
     DiffEqBase.build_solution(prob, alg, ts, timeseries,
