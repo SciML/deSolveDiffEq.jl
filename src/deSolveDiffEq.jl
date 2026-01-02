@@ -29,6 +29,25 @@ struct impAdams <: deSolveAlgorithm end
 struct impAdams_d <: deSolveAlgorithm end
 struct iteration <: deSolveAlgorithm end
 
+# Compile-time algorithm name extraction to avoid runtime string allocations
+algname(::lsoda) = "lsoda"
+algname(::lsode) = "lsode"
+algname(::lsodes) = "lsodes"
+algname(::lsodar) = "lsodar"
+algname(::vode) = "vode"
+algname(::daspk) = "daspk"
+algname(::euler) = "euler"
+algname(::rk4) = "rk4"
+algname(::ode23) = "ode23"
+algname(::ode45) = "ode45"
+algname(::radau) = "radau"
+algname(::bdf) = "bdf"
+algname(::bdf_d) = "bdf_d"
+algname(::adams) = "adams"
+algname(::impAdams) = "impAdams"
+algname(::impAdams_d) = "impAdams_d"
+algname(::iteration) = "iteration"
+
 function DiffEqBase.__solve(
         prob::DiffEqBase.AbstractODEProblem,
         alg::deSolveAlgorithm, timeseries = [], ts = [], ks = [];
@@ -54,18 +73,18 @@ function DiffEqBase.__solve(
     end
 
     _saveat = isempty(saveat) ? nothing : saveat
-    if _saveat isa Array
-        __saveat = _saveat
+    __saveat = if _saveat isa AbstractVector
+        _saveat
     elseif _saveat isa Number
-        __saveat = Array(tspan[1]:_saveat:tspan[2])
+        collect(tspan[1]:_saveat:tspan[2])
     elseif _saveat isa Nothing
-        __saveat = [tspan[1], tspan[2]]
+        eltype(tspan)[tspan[1], tspan[2]]
     else
-        __saveat = Array(_saveat)
+        collect(_saveat)
     end
 
     out = rcopy(solver[].ode(times = __saveat, y = u0, func = f,
-        method = string(alg)[15:(end - 2)],
+        method = algname(alg),
         parms = nothing, maxsteps = maxiters,
         rtol = reltol, atol = abstol))
 
@@ -73,11 +92,12 @@ function DiffEqBase.__solve(
 
     if u0 isa AbstractArray
         timeseries = Vector{typeof(u0)}(undef, length(ts))
-        for i in 1:length(ts)
+        @inbounds for i in eachindex(ts)
             timeseries[i] = @view out[i, 2:end]
         end
     else
-        timeseries = out[i, end]
+        # Scalar case: extract the solution values from column 2
+        timeseries = @inbounds @view out[:, 2]
     end
 
     DiffEqBase.build_solution(prob, alg, ts, timeseries,
