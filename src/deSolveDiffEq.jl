@@ -86,8 +86,7 @@ function DiffEqBase.__solve(
 end
 
 @setup_workload begin
-    # Precompile algorithm struct instantiation and type hierarchy checks
-    # These are pure Julia operations that don't require R
+    # Precompile operations that don't require R to be initialized
     @compile_workload begin
         # Instantiate all algorithm types - this precompiles their constructors
         # and the subtype relationships
@@ -100,6 +99,47 @@ end
             alg isa deSolveAlgorithm
             alg isa DiffEqBase.AbstractODEAlgorithm
         end
+
+        # Precompile ODEProblem construction - common user entry point
+        # This avoids ~0.3s of compilation on first ODEProblem creation
+        _f_oop(u, p, t) = u
+        _f_iip(du, u, p, t) = (du .= u; nothing)
+        _u0 = [1.0, 0.0, 0.0]
+        _tspan = (0.0, 1.0)
+
+        # Out-of-place problem (most common)
+        _prob_oop = ODEProblem(_f_oop, _u0, _tspan)
+        DiffEqBase.isinplace(_prob_oop)
+
+        # In-place problem
+        _prob_iip = ODEProblem(_f_iip, _u0, _tspan)
+        DiffEqBase.isinplace(_prob_iip)
+
+        # Precompile saveat processing logic
+        _saveat_arr = [0.0, 0.5, 1.0]
+        _saveat_num = 0.1
+        isempty(_saveat_arr)
+        isempty(Float64[])
+        _saveat_arr isa Array
+        _saveat_num isa Number
+        Array(_tspan[1]:_saveat_num:_tspan[2])
+
+        # Precompile algorithm name extraction (used in solve)
+        for alg in algs
+            string(typeof(alg))[15:(end - 2)]
+        end
+
+        # Precompile array operations used in solution construction
+        _out = zeros(3, 4)
+        @view _out[:, 1]
+        _ts = @view _out[:, 1]
+        _timeseries = Vector{typeof(_u0)}(undef, length(_ts))
+        for i in 1:length(_ts)
+            _timeseries[i] = @view _out[i, 2:end]
+        end
+
+        # Precompile similar() for in-place function wrapper
+        similar(_u0)
     end
 end
 
