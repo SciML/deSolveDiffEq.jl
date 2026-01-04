@@ -6,7 +6,7 @@ using Reexport, RCall, PrecompileTools
 solver = Ref{Module}()
 
 function __init__()
-    solver[] = rimport("deSolve")
+    return solver[] = rimport("deSolve")
 end
 
 abstract type deSolveAlgorithm <: DiffEqBase.AbstractODEAlgorithm end
@@ -52,9 +52,10 @@ function DiffEqBase.__solve(
         prob::DiffEqBase.AbstractODEProblem,
         alg::deSolveAlgorithm, timeseries = [], ts = [], ks = [];
         saveat = eltype(prob.tspan)[], timeseries_errors = true,
-        reltol = 1e-3, abstol = 1e-6,
+        reltol = 1.0e-3, abstol = 1.0e-6,
         maxiters = 100000,
-        kwargs...)
+        kwargs...
+    )
     p = prob.p
     tspan = prob.tspan
     u0 = prob.u0
@@ -63,12 +64,12 @@ function DiffEqBase.__solve(
         f = function (t, u, __p)
             du = similar(u)
             prob.f(du, u, p, t)
-            R"list($du)" # Error message says a list return is required!
+            return R"list($du)" # Error message says a list return is required!
         end
     else
         f = function (t, u, __p)
             du = prob.f(u, p, t)
-            R"list($du)" # Error message says a list return is required!
+            return R"list($du)" # Error message says a list return is required!
         end
     end
 
@@ -83,10 +84,14 @@ function DiffEqBase.__solve(
         collect(_saveat)
     end
 
-    out = rcopy(solver[].ode(times = __saveat, y = u0, func = f,
-        method = algname(alg),
-        parms = nothing, maxsteps = maxiters,
-        rtol = reltol, atol = abstol))
+    out = rcopy(
+        solver[].ode(
+            times = __saveat, y = u0, func = f,
+            method = algname(alg),
+            parms = nothing, maxsteps = maxiters,
+            rtol = reltol, atol = abstol
+        )
+    )
 
     ts = @view out[:, 1]
 
@@ -100,9 +105,11 @@ function DiffEqBase.__solve(
         timeseries = @inbounds @view out[:, 2]
     end
 
-    DiffEqBase.build_solution(prob, alg, ts, timeseries,
+    return DiffEqBase.build_solution(
+        prob, alg, ts, timeseries,
         dense = false,
-        timeseries_errors = timeseries_errors)
+        timeseries_errors = timeseries_errors
+    )
 end
 
 @setup_workload begin
@@ -110,9 +117,11 @@ end
     @compile_workload begin
         # Instantiate all algorithm types - this precompiles their constructors
         # and the subtype relationships
-        algs = (lsoda(), lsode(), lsodes(), lsodar(), vode(), daspk(),
-                euler(), rk4(), ode23(), ode45(), radau(), bdf(), bdf_d(),
-                adams(), impAdams(), impAdams_d(), iteration())
+        algs = (
+            lsoda(), lsode(), lsodes(), lsodar(), vode(), daspk(),
+            euler(), rk4(), ode23(), ode45(), radau(), bdf(), bdf_d(),
+            adams(), impAdams(), impAdams_d(), iteration(),
+        )
 
         # Precompile type checks that DiffEqBase.solve will use for dispatch
         for alg in algs
