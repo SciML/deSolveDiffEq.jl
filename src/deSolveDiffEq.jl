@@ -108,7 +108,8 @@ function DiffEqBase.__solve(
     return DiffEqBase.build_solution(
         prob, alg, ts, timeseries,
         dense = false,
-        timeseries_errors = timeseries_errors
+        timeseries_errors = timeseries_errors,
+        retcode = ReturnCode.Success
     )
 end
 

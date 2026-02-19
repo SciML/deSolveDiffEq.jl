@@ -1,4 +1,6 @@
 using deSolveDiffEq
+using DiffEqBase
+using SciMLBase
 using Test
 
 function lorenz(u, p, t)
@@ -29,6 +31,12 @@ sol = solve(prob, deSolveDiffEq.impAdams_d())
 #sol = solve(prob,deSolveDiffEq.iteration())
 
 sol = solve(prob, deSolveDiffEq.lsoda(), saveat = 0.1)
+
+@testset "retcode is Success" begin
+    sol = solve(prob, deSolveDiffEq.lsoda())
+    @test sol.retcode == DiffEqBase.ReturnCode.Success
+    @test SciMLBase.successful_retcode(sol)
+end
 #using Plots; plot(sol,vars=(1,2,3))
 
 # Allocation tests for pure Julia helper functions
