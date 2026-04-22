@@ -10,7 +10,7 @@ RCall = "6f49c342-dc21-5d91-9882-a32aef131414"
 Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 
 [compat]
-DiffEqBase = "6"
+DiffEqBase = "6, 7.0"
 PrecompileTools = "1"
 RCall = "0.14"
 Reexport = "1.0"
