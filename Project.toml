@@ -12,6 +12,7 @@ Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 [compat]
 AllocCheck = "0.1, 0.2"
 DiffEqBase = "6, 7"
+Pkg = "1"
 PrecompileTools = "1"
 RCall = "0.14"
 Reexport = "1.0"
