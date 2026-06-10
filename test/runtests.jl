@@ -1,4 +1,8 @@
 using Test
+using deSolveDiffEq
+using DiffEqBase
+using SciMLBase
+using AllocCheck
 
 const GROUP = get(ENV, "GROUP", "All")
 
@@ -10,9 +14,6 @@ if GROUP == "QA"
 end
 
 if GROUP == "All" || GROUP == "Core"
-    using deSolveDiffEq
-    using DiffEqBase
-    using SciMLBase
     function lorenz(u, p, t)
         du1 = 10.0(u[2] - u[1])
         du2 = u[1] * (28.0 - u[3]) - u[2]
@@ -52,8 +53,6 @@ if GROUP == "All" || GROUP == "Core"
     # Allocation tests for pure Julia helper functions
     # Note: The main solve function allocates due to R interop (RCall),
     # so we only test the Julia-side helper functions
-    using AllocCheck
-
     @testset "AllocCheck - Algorithm Name Functions" begin
         # Test that algname functions are allocation-free (compile-time constants)
         algs = (
