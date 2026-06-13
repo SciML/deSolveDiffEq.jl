@@ -16,5 +16,5 @@ jobs:
   tests:
     uses: "SciML/.github/.github/workflows/grouped-tests.yml@v1"
     with:
-      apt-packages: "r-base-dev"
+      apt-packages: "r-base r-cran-desolve"
     secrets: "inherit"
