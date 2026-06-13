@@ -16,5 +16,7 @@ jobs:
   tests:
     uses: "SciML/.github/.github/workflows/grouped-tests.yml@v1"
     with:
-      apt-packages: "r-base-dev"
+      # r-base-dev provides R + headers for RCall; r-cran-desolve provides the
+      # deSolve CRAN package that __init__ loads via rimport("deSolve").
+      apt-packages: "r-base-dev r-cran-desolve"
     secrets: "inherit"
