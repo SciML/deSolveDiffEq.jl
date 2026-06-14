@@ -1,4 +1,5 @@
 using Test
+using SafeTestsets
 using deSolveDiffEq
 using DiffEqBase
 using SciMLBase
@@ -43,7 +44,21 @@ if GROUP == "All" || GROUP == "Core"
 
     sol = solve(prob, deSolveDiffEq.lsoda(), saveat = 0.1)
 
-    @testset "retcode is Success" begin
+    @safetestset "retcode is Success" begin
+        using deSolveDiffEq
+        using DiffEqBase
+        using SciMLBase
+
+        function lorenz(u, p, t)
+            du1 = 10.0(u[2] - u[1])
+            du2 = u[1] * (28.0 - u[3]) - u[2]
+            du3 = u[1] * u[2] - (8 / 3) * u[3]
+            return [du1, du2, du3]
+        end
+        u0 = [1.0; 0.0; 0.0]
+        tspan = (0.0, 100.0)
+        prob = ODEProblem(lorenz, u0, tspan)
+
         sol = solve(prob, deSolveDiffEq.lsoda())
         @test sol.retcode == DiffEqBase.ReturnCode.Success
         @test SciMLBase.successful_retcode(sol)
@@ -53,7 +68,11 @@ if GROUP == "All" || GROUP == "Core"
     # Allocation tests for pure Julia helper functions
     # Note: The main solve function allocates due to R interop (RCall),
     # so we only test the Julia-side helper functions
-    @testset "AllocCheck - Algorithm Name Functions" begin
+    @safetestset "AllocCheck - Algorithm Name Functions" begin
+        using deSolveDiffEq
+        using AllocCheck
+        using Test
+
         # Test that algname functions are allocation-free (compile-time constants)
         algs = (
             deSolveDiffEq.lsoda(), deSolveDiffEq.lsode(), deSolveDiffEq.lsodes(),

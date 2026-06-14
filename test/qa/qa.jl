@@ -1,9 +1,10 @@
-using deSolveDiffEq
-using Aqua
-using JET
-using Test
+using SafeTestsets
 
-@testset "Aqua" begin
+@safetestset "Aqua" begin
+    using deSolveDiffEq
+    using Aqua
+    using Test
+
     # persistent_tasks disabled: RCall's __init__ calls `rimport`, which `eval`s
     # into a module and breaks incremental precompilation of the child package
     # Aqua spawns, so the check cannot pass until RCall init is precompile-safe.
@@ -11,6 +12,10 @@ using Test
     @test_broken false  # Aqua persistent_tasks: RCall __init__ eval breaks incremental precompile — see https://github.com/SciML/deSolveDiffEq.jl/issues/51
 end
 
-@testset "JET" begin
+@safetestset "JET" begin
+    using deSolveDiffEq
+    using JET
+    using Test
+
     JET.test_package(deSolveDiffEq; target_defined_modules = true)
 end
