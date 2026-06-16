@@ -9,6 +9,10 @@ const GROUP = get(ENV, "GROUP", "All")
 if GROUP == "QA"
     using Pkg
     Pkg.activate(joinpath(@__DIR__, "qa"))
+    # `[sources]` is only honored on Julia >= 1.11; on the 1.10 floor it is silently
+    # ignored and the registered (stale) deSolveDiffEq is resolved instead, which makes
+    # Aqua inspect an outdated Project.toml. `develop` pins the local package on all versions.
+    Pkg.develop(PackageSpec(path = joinpath(@__DIR__, "..")))
     Pkg.instantiate()
     include(joinpath(@__DIR__, "qa", "qa.jl"))
 end
