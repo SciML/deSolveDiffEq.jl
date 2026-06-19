@@ -1,6 +1,9 @@
+# Core/QA run ubuntu-only: the centralized caller provisions R + the deSolve R
+# package (which RCall needs) via apt, which is Linux-only, and routes
+# apt-packages legs onto a GitHub-hosted ubuntu-24.04 runner. macOS/Windows
+# cells could not get R/deSolve and would stay red, so they are not run.
 [Core]
 versions = ["lts", "1", "pre"]
-os = ["ubuntu-latest", "macOS-latest", "windows-latest"]
 
 [QA]
 versions = ["lts", "1"]
