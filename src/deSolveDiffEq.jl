@@ -1,7 +1,10 @@
 module deSolveDiffEq
 
-using Reexport, RCall, PrecompileTools
+using Reexport: @reexport
+using RCall: @R_str, rcopy, rimport
+using PrecompileTools: @setup_workload, @compile_workload
 @reexport using DiffEqBase
+using DiffEqBase: DiffEqBase, ODEProblem, ReturnCode
 
 solver = Ref{Module}()
 
