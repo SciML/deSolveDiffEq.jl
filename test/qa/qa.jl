@@ -18,11 +18,10 @@ run_qa(
         all_qualified_accesses_via_owners = (;
             ignore = (:AbstractODEAlgorithm, :AbstractODEProblem, :__solve, :build_solution),
         ),
-        # Same four names are non-public in DiffEqBase, plus ReturnCode.Success is
-        # non-public in SciMLBase.ReturnCode; both go public as those base libs
-        # declare their public API.
+        # Same four names accessed as `DiffEqBase.X` are non-public in DiffEqBase
+        # (owned by SciMLBase, re-exported non-public through DiffEqBase).
         all_qualified_accesses_are_public = (;
-            ignore = (:AbstractODEAlgorithm, :AbstractODEProblem, :__solve, :build_solution, :Success),
+            ignore = (:AbstractODEAlgorithm, :AbstractODEProblem, :__solve, :build_solution),
         ),
     ),
 )
