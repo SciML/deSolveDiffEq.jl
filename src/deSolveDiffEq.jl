@@ -1,7 +1,11 @@
 module deSolveDiffEq
 
-using Reexport, RCall, PrecompileTools
+using Reexport: @reexport
+using RCall: @R_str, rcopy, rimport
+using PrecompileTools: @setup_workload, @compile_workload
 @reexport using DiffEqBase
+using DiffEqBase: DiffEqBase, ODEProblem, ReturnCode
+using SciMLBase: SciMLBase
 
 solver = Ref{Module}()
 
@@ -9,7 +13,7 @@ function __init__()
     return solver[] = rimport("deSolve")
 end
 
-abstract type deSolveAlgorithm <: DiffEqBase.AbstractODEAlgorithm end
+abstract type deSolveAlgorithm <: SciMLBase.AbstractODEAlgorithm end
 
 struct lsoda <: deSolveAlgorithm end
 struct lsode <: deSolveAlgorithm end
@@ -48,8 +52,8 @@ algname(::impAdams) = "impAdams"
 algname(::impAdams_d) = "impAdams_d"
 algname(::iteration) = "iteration"
 
-function DiffEqBase.__solve(
-        prob::DiffEqBase.AbstractODEProblem,
+function SciMLBase.__solve(
+        prob::SciMLBase.AbstractODEProblem,
         alg::deSolveAlgorithm, timeseries = [], ts = [], ks = [];
         saveat = eltype(prob.tspan)[], timeseries_errors = true,
         reltol = 1.0e-3, abstol = 1.0e-6,
@@ -60,7 +64,7 @@ function DiffEqBase.__solve(
     tspan = prob.tspan
     u0 = prob.u0
 
-    if DiffEqBase.isinplace(prob)
+    if SciMLBase.isinplace(prob)
         f = function (t, u, __p)
             du = similar(u)
             prob.f(du, u, p, t)
@@ -105,7 +109,7 @@ function DiffEqBase.__solve(
         timeseries = @inbounds @view out[:, 2]
     end
 
-    return DiffEqBase.build_solution(
+    return SciMLBase.build_solution(
         prob, alg, ts, timeseries,
         dense = false,
         timeseries_errors = timeseries_errors,
@@ -127,7 +131,7 @@ end
         # Precompile type checks that DiffEqBase.solve will use for dispatch
         for alg in algs
             alg isa deSolveAlgorithm
-            alg isa DiffEqBase.AbstractODEAlgorithm
+            alg isa SciMLBase.AbstractODEAlgorithm
         end
 
         # Precompile ODEProblem construction - common user entry point
@@ -139,11 +143,11 @@ end
 
         # Out-of-place problem (most common)
         _prob_oop = ODEProblem(_f_oop, _u0, _tspan)
-        DiffEqBase.isinplace(_prob_oop)
+        SciMLBase.isinplace(_prob_oop)
 
         # In-place problem
         _prob_iip = ODEProblem(_f_iip, _u0, _tspan)
-        DiffEqBase.isinplace(_prob_iip)
+        SciMLBase.isinplace(_prob_iip)
 
         # Precompile saveat processing logic
         _saveat_arr = [0.0, 0.5, 1.0]
