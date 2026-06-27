@@ -11,17 +11,12 @@ run_qa(
     # https://github.com/SciML/deSolveDiffEq.jl/issues/51
     aqua_broken = (:persistent_tasks,),
     ei_kwargs = (;
-        # AbstractODEAlgorithm/AbstractODEProblem/__solve/build_solution are owned
-        # by SciMLBase but reached through DiffEqBase (this package's declared dep,
-        # not SciMLBase); they are the canonical DiffEqBase solve interface this
-        # package subtypes/extends/calls.
-        all_qualified_accesses_via_owners = (;
-            ignore = (:AbstractODEAlgorithm, :AbstractODEProblem, :__solve, :build_solution),
-        ),
-        # Same four names accessed as `DiffEqBase.X` are non-public in DiffEqBase
-        # (owned by SciMLBase, re-exported non-public through DiffEqBase).
+        # `__solve` is the SciMLBase-owned solve-interface hook this package
+        # extends as `SciMLBase.__solve`. It remains non-public in SciMLBase (and
+        # in DiffEqBase), so the public-API check flags the qualified access even
+        # though it is reached through its owner.
         all_qualified_accesses_are_public = (;
-            ignore = (:AbstractODEAlgorithm, :AbstractODEProblem, :__solve, :build_solution),
+            ignore = (:__solve,),
         ),
     ),
 )
