@@ -3,10 +3,6 @@ using JET
 
 run_qa(
     deSolveDiffEq;
-    api_docs_kwargs = (;
-        rendered = true,
-        rendered_ignore = Tuple(names(deSolveDiffEq.DiffEqBase)),
-    ),
     explicit_imports = true,
     jet_kwargs = (; target_defined_modules = true),
     # persistent_tasks: RCall's __init__ calls `rimport`, which `eval`s into a
