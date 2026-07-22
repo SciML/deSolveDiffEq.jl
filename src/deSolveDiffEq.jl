@@ -7,10 +7,20 @@ using PrecompileTools: @setup_workload, @compile_workload
 using DiffEqBase: DiffEqBase, ODEProblem, ReturnCode
 using SciMLBase: SciMLBase
 
-solver = Ref{Module}()
+const solver = Ref{Module}()
 
 function __init__()
-    return solver[] = rimport("deSolve")
+    try
+        solver[] = rimport("deSolve")
+    catch err
+        @warn """
+        deSolveDiffEq.jl loaded but could not import the R `deSolve` package, so no \
+        solver is available. Solving with a deSolveDiffEq algorithm will error until R \
+        and the `deSolve` package are installed and reachable through RCall.jl. Install \
+        it from R with `install.packages("deSolve")`.
+        """ exception = (err, catch_backtrace())
+    end
+    return nothing
 end
 
 abstract type deSolveAlgorithm <: SciMLBase.AbstractODEAlgorithm end
@@ -60,6 +70,11 @@ function SciMLBase.__solve(
         maxiters = 100000,
         kwargs...
     )
+    isassigned(solver) || error(
+        "deSolveDiffEq: the R `deSolve` package is not available. Install R and run " *
+        "`install.packages(\"deSolve\")` so RCall.jl can load it, then restart Julia."
+    )
+
     p = prob.p
     tspan = prob.tspan
     u0 = prob.u0
