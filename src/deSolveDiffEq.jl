@@ -1,17 +1,24 @@
 module deSolveDiffEq
 
-using Reexport: @reexport
-using RCall: @R_str, rcopy, rimport
 using PrecompileTools: @setup_workload, @compile_workload
-@reexport using DiffEqBase
-using DiffEqBase: DiffEqBase, ODEProblem, ReturnCode
-using SciMLBase: SciMLBase
+import DiffEqBase
+using SciMLBase: ODEProblem, ReturnCode
+import SciMLBase
 
-const solver = Ref{Module}()
+export deSolveAlgorithm, lsoda, lsode, lsodes, lsodar, vode, daspk, euler, rk4, ode23,
+    ode45, radau, bdf, bdf_d, adams, impAdams, impAdams_d, iteration
 
-function __init__()
+const solver = Ref{Union{Nothing, Module}}(nothing)
+const r_adapter = Ref{Any}(nothing)
+
+function deSolve_solver()
+    solver[] !== nothing && return solver[]
+    RCall = r_adapter[]
+    RCall === nothing && error(
+        "deSolveDiffEq: RCall must be loaded before solving with a deSolveDiffEq algorithm.",
+    )
     try
-        solver[] = rimport("deSolve")
+        return solver[] = RCall.rimport("deSolve")
     catch err
         @warn """
         deSolveDiffEq.jl loaded but could not import the R `deSolve` package, so no \
@@ -19,28 +26,121 @@ function __init__()
         and the `deSolve` package are installed and reachable through RCall.jl. Install \
         it from R with `install.packages("deSolve")`.
         """ exception = (err, catch_backtrace())
+        error(
+            "deSolveDiffEq: the R `deSolve` package is not available. Install R and run " *
+                "`install.packages(\"deSolve\")` so RCall.jl can load it, then restart Julia.",
+        )
     end
-    return nothing
 end
 
+"""
+    deSolveAlgorithm
+
+Abstract supertype for algorithms provided by the R `deSolve` package.
+"""
 abstract type deSolveAlgorithm <: SciMLBase.AbstractODEAlgorithm end
 
+"""
+    lsoda()
+
+Select the R `deSolve` `lsoda` algorithm.
+"""
 struct lsoda <: deSolveAlgorithm end
+"""
+    lsode()
+
+Select the R `deSolve` `lsode` algorithm.
+"""
 struct lsode <: deSolveAlgorithm end
+"""
+    lsodes()
+
+Select the R `deSolve` `lsodes` algorithm.
+"""
 struct lsodes <: deSolveAlgorithm end
+"""
+    lsodar()
+
+Select the R `deSolve` `lsodar` algorithm.
+"""
 struct lsodar <: deSolveAlgorithm end
+"""
+    vode()
+
+Select the R `deSolve` `vode` algorithm.
+"""
 struct vode <: deSolveAlgorithm end
+"""
+    daspk()
+
+Select the R `deSolve` `daspk` algorithm.
+"""
 struct daspk <: deSolveAlgorithm end
+"""
+    euler()
+
+Select the R `deSolve` `euler` algorithm.
+"""
 struct euler <: deSolveAlgorithm end
+"""
+    rk4()
+
+Select the R `deSolve` `rk4` algorithm.
+"""
 struct rk4 <: deSolveAlgorithm end
+"""
+    ode23()
+
+Select the R `deSolve` `ode23` algorithm.
+"""
 struct ode23 <: deSolveAlgorithm end
+"""
+    ode45()
+
+Select the R `deSolve` `ode45` algorithm.
+"""
 struct ode45 <: deSolveAlgorithm end
+"""
+    radau()
+
+Select the R `deSolve` `radau` algorithm.
+"""
 struct radau <: deSolveAlgorithm end
+"""
+    bdf()
+
+Select the R `deSolve` `bdf` algorithm.
+"""
 struct bdf <: deSolveAlgorithm end
+"""
+    bdf_d()
+
+Select the R `deSolve` `bdf_d` algorithm.
+"""
 struct bdf_d <: deSolveAlgorithm end
+"""
+    adams()
+
+Select the R `deSolve` `adams` algorithm.
+"""
 struct adams <: deSolveAlgorithm end
+"""
+    impAdams()
+
+Select the R `deSolve` `impAdams` algorithm.
+"""
 struct impAdams <: deSolveAlgorithm end
+"""
+    impAdams_d()
+
+Select the R `deSolve` `impAdams_d` algorithm.
+"""
 struct impAdams_d <: deSolveAlgorithm end
+"""
+    iteration()
+
+Select the R `deSolve` `iteration` algorithm.
+"""
 struct iteration <: deSolveAlgorithm end
 
 # Compile-time algorithm name extraction to avoid runtime string allocations
@@ -70,10 +170,11 @@ function SciMLBase.__solve(
         maxiters = 100000,
         kwargs...
     )
-    isassigned(solver) || error(
-        "deSolveDiffEq: the R `deSolve` package is not available. Install R and run " *
-        "`install.packages(\"deSolve\")` so RCall.jl can load it, then restart Julia."
+    RCall = r_adapter[]
+    RCall === nothing && error(
+        "deSolveDiffEq: RCall must be loaded before solving with a deSolveDiffEq algorithm.",
     )
+    deSolve = deSolve_solver()
 
     p = prob.p
     tspan = prob.tspan
@@ -83,12 +184,12 @@ function SciMLBase.__solve(
         f = function (t, u, __p)
             du = similar(u)
             prob.f(du, u, p, t)
-            return R"list($du)" # Error message says a list return is required!
+            return RCall.rcall(:list, du) # Error message says a list return is required!
         end
     else
         f = function (t, u, __p)
             du = prob.f(u, p, t)
-            return R"list($du)" # Error message says a list return is required!
+            return RCall.rcall(:list, du) # Error message says a list return is required!
         end
     end
 
@@ -103,8 +204,8 @@ function SciMLBase.__solve(
         collect(_saveat)
     end
 
-    out = rcopy(
-        solver[].ode(
+    out = RCall.rcopy(
+        deSolve.ode(
             times = __saveat, y = u0, func = f,
             method = algname(alg),
             parms = nothing, maxsteps = maxiters,
