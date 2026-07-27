@@ -4,7 +4,7 @@ using deSolveDiffEq
 using RCall
 
 function __init__()
-    deSolveDiffEq.rcall_adapter[] = RCall
+    deSolveDiffEq.r_adapter[] = RCall
     return nothing
 end
 

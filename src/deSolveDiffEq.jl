@@ -9,11 +9,11 @@ export deSolveAlgorithm, lsoda, lsode, lsodes, lsodar, vode, daspk, euler, rk4, 
     ode45, radau, bdf, bdf_d, adams, impAdams, impAdams_d, iteration
 
 const solver = Ref{Union{Nothing, Module}}(nothing)
-const rcall_adapter = Ref{Any}(nothing)
+const r_adapter = Ref{Any}(nothing)
 
 function deSolve_solver()
     solver[] !== nothing && return solver[]
-    RCall = rcall_adapter[]
+    RCall = r_adapter[]
     RCall === nothing && error(
         "deSolveDiffEq: RCall must be loaded before solving with a deSolveDiffEq algorithm.",
     )
@@ -170,7 +170,7 @@ function SciMLBase.__solve(
         maxiters = 100000,
         kwargs...
     )
-    RCall = rcall_adapter[]
+    RCall = r_adapter[]
     RCall === nothing && error(
         "deSolveDiffEq: RCall must be loaded before solving with a deSolveDiffEq algorithm.",
     )

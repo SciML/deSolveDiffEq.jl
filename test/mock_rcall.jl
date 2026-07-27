@@ -25,5 +25,5 @@ module MockRCall
 
 end
 
-deSolveDiffEq.rcall_adapter[] = MockRCall
+deSolveDiffEq.r_adapter[] = MockRCall
 deSolveDiffEq.solver[] = nothing
