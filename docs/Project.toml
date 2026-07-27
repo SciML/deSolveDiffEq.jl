@@ -1,0 +1,10 @@
+[deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+deSolveDiffEq = "0518478a-701b-4815-806c-24ad5cb92f09"
+
+[compat]
+Documenter = "1"
+julia = "1.10"
+
+[sources]
+deSolveDiffEq = {path = ".."}

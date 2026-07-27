@@ -52,7 +52,7 @@ deSolveDiffEq.impAdams_d()
 ## Example
 
 ```julia
-using deSolveDiffEq
+using SciMLBase, deSolveDiffEq, RCall
 
 function lorenz(u, p, t)
     du1 = 10.0(u[2]-u[1])
@@ -102,7 +102,7 @@ RObject{RealSxp}
 vs the deSolveDiffEq.jl approach:
 
 ```julia
-using deSolveDiffEq, BenchmarkTools
+using SciMLBase, deSolveDiffEq, RCall, BenchmarkTools
 
 function lorenz(u, p, t)
     du1 = 10.0(u[2]-u[1])

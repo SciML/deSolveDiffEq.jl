@@ -1,5 +1,4 @@
 using deSolveDiffEq
-using DiffEqBase
 using SciMLBase
 using Test
 
@@ -34,6 +33,6 @@ sol = solve(prob, deSolveDiffEq.lsoda(), saveat = 0.1)
 
 @testset "retcode is Success" begin
     sol = solve(prob, deSolveDiffEq.lsoda())
-    @test sol.retcode == DiffEqBase.ReturnCode.Success
+    @test sol.retcode == SciMLBase.ReturnCode.Success
     @test SciMLBase.successful_retcode(sol)
 end
