@@ -1,7 +1,7 @@
 module deSolveDiffEqRCallExt
 
 using deSolveDiffEq
-using RCall
+using RCall: RCall
 
 function __init__()
     deSolveDiffEq.r_adapter[] = RCall
