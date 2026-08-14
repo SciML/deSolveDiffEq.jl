@@ -16,7 +16,7 @@ deSolveDiffEqRCallExt = "RCall"
 
 [compat]
 AllocCheck = "0.1, 0.2"
-DiffEqBase = "6, 7"
+DiffEqBase = "7"
 PrecompileTools = "1.1"
 RCall = "0.14"
 SafeTestsets = "0.1, 1"
