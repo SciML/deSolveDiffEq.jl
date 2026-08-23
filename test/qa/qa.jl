@@ -14,8 +14,20 @@ using RCall
     end
 end
 
+# The SciML common interface deSolveDiffEq deliberately reexports so that
+# `using deSolveDiffEq` is enough to build an ODE problem, solve it, and inspect the
+# result. Owned and documented upstream; kept in sync with the reexport `export` block
+# in src/deSolveDiffEq.jl.
+const REEXPORTS = (
+    :DEStats, :EnsembleAnalysis, :EnsembleDistributed, :EnsembleProblem, :EnsembleSerial,
+    :EnsembleSolution, :EnsembleSplitThreads, :EnsembleSummary, :EnsembleThreads,
+    :NullParameters, :ODEFunction, :ODEProblem, :ODESolution, :ReturnCode, :remake,
+    :solve, :successful_retcode,
+)
+
 run_qa(
     deSolveDiffEq;
+    reexports_allow = REEXPORTS,
     ei_kwargs = (;
         all_qualified_accesses_are_public = (;
             ignore = (
@@ -28,3 +40,14 @@ run_qa(
         ),
     ),
 )
+
+@testset "Reexport surface" begin
+    # Every approved reexport must actually be reachable from `using deSolveDiffEq`, so
+    # the allow-list cannot drift into approving names the package no longer provides.
+    # `isdefined(@__MODULE__, ...)` tests the property directly: this file's
+    # `using deSolveDiffEq` is what has to bring the name into scope.
+    @testset "$name" for name in REEXPORTS
+        @test name in names(deSolveDiffEq)
+        @test isdefined(@__MODULE__, name)
+    end
+end

@@ -8,6 +8,22 @@ import SciMLBase
 export deSolveAlgorithm, lsoda, lsode, lsodes, lsodar, vode, daspk, euler, rk4, ode23,
     ode45, radau, bdf, bdf_d, adams, impAdams, impAdams_d, iteration
 
+# The SciML common interface that deSolveDiffEq reexports (see the `export` block below),
+# so that `using deSolveDiffEq` on its own is enough to build an ODE problem, solve it,
+# and inspect the result -- the workflow the README documents. Every name stays owned and
+# documented upstream.
+using SciMLBase: DEStats, EnsembleAnalysis, EnsembleDistributed, EnsembleProblem,
+    EnsembleSerial, EnsembleSolution, EnsembleSplitThreads, EnsembleSummary,
+    EnsembleThreads, NullParameters, ODEFunction, ODESolution, remake, solve,
+    successful_retcode
+
+# Reexported SciML common interface; approved via `reexports_allow` in test/qa/qa.jl.
+# `ODEProblem` and `ReturnCode` are imported above.
+export DEStats, EnsembleAnalysis, EnsembleDistributed, EnsembleProblem, EnsembleSerial,
+    EnsembleSolution, EnsembleSplitThreads, EnsembleSummary, EnsembleThreads,
+    NullParameters, ODEFunction, ODEProblem, ODESolution, ReturnCode, remake, solve,
+    successful_retcode
+
 const solver = Ref{Union{Nothing, Module}}(nothing)
 const r_adapter = Ref{Any}(nothing)
 
